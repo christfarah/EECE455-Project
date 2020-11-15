@@ -19,7 +19,7 @@ class GUI(Frame):
 
     def initUI(self):
 
-        self.master.title("Pylynomial Arithmetic")
+        self.master.title("Polynomial Arithmetic")
         self.pack(fill=BOTH, expand=True, padx = 20, pady = 5)
 
         #Title Frame
@@ -70,7 +70,7 @@ class GUI(Frame):
         operationLabel = Label(operationFrame, text="Operation:")
         operationLabel.pack(side=LEFT, padx = 5, pady = 5)
 
-        reductRadiobutton = Radiobutton(operationFrame, text="Reduct", variable=self.operation, value="reduction")
+        reductRadiobutton = Radiobutton(operationFrame, text="Reduce", variable=self.operation, value="reduction")
         reductRadiobutton.pack(side=LEFT, padx = 5, pady = 5)
         reductRadiobutton.invoke()
 
@@ -131,6 +131,9 @@ class GUI(Frame):
         
         hexOutputRadiobutton = Radiobutton(outputTypeFrame, text="Hex", variable=self.outputType, value="hex")
         hexOutputRadiobutton.pack(side=LEFT, padx = 5, pady = 5)
+
+        polyOutputRadiobutton = Radiobutton(outputTypeFrame, text="Show Polynomial", variable=self.outputType, value="poly")
+        polyOutputRadiobutton.pack(side=LEFT, padx = 5, pady = 5)
         
         #Result Frame
         resultFrame = Frame(self)

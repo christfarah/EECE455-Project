@@ -1,3 +1,5 @@
+import numpy as np
+
 def GH(x):
     # Returns Galois prime polynomial hex representation,ex: 2^8 -> 0x1B
     galoishex = {
@@ -120,3 +122,45 @@ def Multiplication(a, b, mod):
             a = a % pow(2, mod)  # Emulating n-bit overflow
         b >>= 1
     return hex(p)
+
+def Division(a, b, mod):
+    a = hex2bin(a)
+    b = hex2bin(b)
+    x=[]
+    y=[]
+    temp_x=a[::-1]
+    temp_y=b[::-1]
+
+    for i in range(len(temp_x) - 2):
+        x.append(int(temp_x[i]))
+
+    for i in range(len(temp_y) - 2):
+        y.append(int(temp_y[i]))
+
+    del temp_x,temp_y,i
+    list=np.polydiv(x,y)
+    quotient = list[0]%2
+    remainder= list[1]%2
+
+    # Array to binary representation
+    temp=quotient
+    quotient="0b"
+    for i in range(len(temp)):
+        quotient=quotient+(temp[i].astype(np.int64)).astype(np.str)
+    del temp
+
+    temp=remainder
+    remainder="0b"
+    for i in range(len(temp)):
+        remainder=remainder+(temp[i].astype(np.int64)).astype(np.str)
+    del temp
+
+    quotient=bin2hex(quotient)
+    remainder=bin2hex(remainder)
+    # QUOTIENT AND REMAINDER IS AVAILABLE IN HEX
+    # DELETE THIS PRINT AFTER TESTING
+    print("Quotient: ",ShowPolynomial(quotient),"\n")
+    print("Remainder: ",ShowPolynomial(remainder),"\n")
+
+    res=[quotient,remainder]
+    return res
