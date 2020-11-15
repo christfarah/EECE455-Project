@@ -9,7 +9,6 @@ class GUI(Frame):
     outputType = "binary" #choices: binary, hex
     degree = "degree2" #choices: degree2...degree8
     operation = "reduction" #choices: reduction, addition, subtraction, multiplication, division, inverse
-    outputType
     polynomial1 = ""
     polynomial2 = ""
 
