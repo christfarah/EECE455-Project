@@ -1,9 +1,10 @@
 import numpy as np
 
+
 def GH(x):
     # Returns Galois prime polynomial hex representation,ex: 2^8 -> 0x1B
-    galoishex = {
-        8: (0x1B),
+    galois_hex = {
+        8: (0x11B),
         7: (0x83),
         6: (0x43),
         5: (0x25),
@@ -11,8 +12,15 @@ def GH(x):
         3: (0x0D),
         2: (0x07)
     }
+    return galois_hex[x]
 
-    return (galoishex[x])
+
+def strbin2bin(x):
+    return "0b" + x
+
+
+def strhex2hex(x):
+    return "0x" + x
 
 
 def hex2bin(x):
@@ -25,6 +33,10 @@ def bin2hex(x):
 
 def hex2dec(x):
     return int(x, 16)
+
+
+def dec2hex(x):
+    return hex(x)
 
 
 def FindDegree(v):
@@ -56,7 +68,7 @@ def ShowPolynomial(f):
 
 
 # NEEDS MODULO IMPLEMENTATION
-def Add(x, y):
+def Add(x, y, mod):
     x = hex2dec(x)
     y = hex2dec(y)
 
@@ -64,103 +76,128 @@ def Add(x, y):
     Adds two field elements and returns the result.
     """
 
-    return hex(x ^ y)
+    res = moduloreduction(hex(x ^ y), mod)
+
+    return res
 
 
-def mod(x, mod):
-    x = hex2bin(x)
-    y = ""
-    for i in range(mod):
-        y += x[len(x) - 1 - i]
-    return bin2hex(y[::-1])
+def moduloreduction(a, mod):
+    b = dec2hex(GH(mod))
+    a = hex2bin(a)[2:]
+    b = hex2bin(b)[2:]
+    x = []
+    y = []
+
+    for i in range(len(a)):
+        x.append(int(a[i]))
+
+    for i in range(len(b)):
+        y.append(int(b[i]))
+
+    del i
+    list = np.polydiv(x, y)
+    remainder = list[1] % 2
+
+    temp = remainder
+    remainder = "0b"
+    for i in range(len(temp)):
+        remainder = remainder + (temp[i].astype(np.int64)).astype(np.str)
+    del temp
+
+    return bin2hex(remainder)
 
 
-def Subtract(x, y):
-    """
-    Subtracts the second argument from the first and returns
-    the result.  In fields of characteristic two this is the same
-    as the Add method.
-    """
-    return Add(x, y)
+def Subtract(x, y, mod):
+    return Add(x, y, mod)
 
 
 def Invert(a, mod):
-    a = hex2dec(a)
-    v = GH(mod)
-    g1 = 1
-    g2 = 0
-    j = FindDegree(a) - mod
-    while (a != 1):
-        if (j < 0):
-            a, v = v, a
-            g1, g2 = g2, g1
-            j = -j
-
-        a ^= v << j
-        g1 ^= g2 << j
-
-        a %= pow(2, mod)  # Emulating n-bit overflow
-        g1 %= pow(2, mod)  # Emulating n-bit overflow
-
-        j = FindDegree(a) - FindDegree(v)
-
-    return hex(g1)
+    d, x, y = p_egcd(int(hex2bin(a), base=2), GH(mod))
+    return dec2hex(x)
 
 
 def Multiplication(a, b, mod):
-    a = hex2dec(a)
-    b = hex2dec(b)
-    p = 0
-    for i in range(mod):
-        if (b & 1) != 0:
-            p ^= a
+    a = hex2bin(a)[2:]
+    b = hex2bin(b)[2:]
+    x = []
+    y = []
 
-        high_bit_set = a & hex2dec(hex(pow(2, mod - 1)))
-        a <<= 1
-        if high_bit_set != 0:
-            a ^= GH(mod)
-            a = a % pow(2, mod)  # Emulating n-bit overflow
-        b >>= 1
-    return hex(p)
+    for i in range(len(a)):
+        x.append(int(a[i]))
 
-def Division(a, b, mod):
-    a = hex2bin(a)
-    b = hex2bin(b)
-    x=[]
-    y=[]
-    temp_x=a[::-1]
-    temp_y=b[::-1]
+    for i in range(len(b)):
+        y.append(int(b[i]))
 
-    for i in range(len(temp_x) - 2):
-        x.append(int(temp_x[i]))
-
-    for i in range(len(temp_y) - 2):
-        y.append(int(temp_y[i]))
-
-    del temp_x,temp_y,i
-    list=np.polydiv(x,y)
-    quotient = list[0]%2
-    remainder= list[1]%2
+    del i
+    list = np.polymul(x, y)
+    res = list % 2
 
     # Array to binary representation
-    temp=quotient
-    quotient="0b"
+    temp = res
+    res = "0b"
     for i in range(len(temp)):
-        quotient=quotient+(temp[i].astype(np.int64)).astype(np.str)
+        res = res + (temp[i].astype(np.int64)).astype(np.str)
     del temp
 
-    temp=remainder
-    remainder="0b"
-    for i in range(len(temp)):
-        remainder=remainder+(temp[i].astype(np.int64)).astype(np.str)
-    del temp
+    res = moduloreduction(bin2hex(res), mod)
 
-    quotient=bin2hex(quotient)
-    remainder=bin2hex(remainder)
-    # QUOTIENT AND REMAINDER IS AVAILABLE IN HEX
-    # DELETE THIS PRINT AFTER TESTING
-    print("Quotient: ",ShowPolynomial(quotient),"\n")
-    print("Remainder: ",ShowPolynomial(remainder),"\n")
-
-    res=[quotient,remainder]
     return res
+
+
+def Division(a, b, mod):
+    a = hex2bin(a)[2:]
+    b = hex2bin(b)[2:]
+    x = []
+    y = []
+
+    for i in range(len(a)):
+        x.append(int(a[i]))
+
+    for i in range(len(b)):
+        y.append(int(b[i]))
+
+    del i
+    list = np.polydiv(x, y)
+    quotient = list[0] % 2
+
+    # Array to binary representation
+    temp = quotient
+    quotient = "0b"
+    for i in range(len(temp)):
+        quotient = quotient + (temp[i].astype(np.int64)).astype(np.str)
+    del temp
+
+    quotient = moduloreduction(bin2hex(quotient), mod)
+
+    return quotient
+
+
+def p_divmod(a, b):
+    """ Binary polynomial division.
+        Divides a by b and returns resulting (quotient, remainder) polynomials.
+        Precondition: b != 0 """
+    q = 0;
+    bl = b.bit_length()
+    while True:
+        shift = a.bit_length() - bl
+        if shift < 0: return (q, a)
+        q ^= 1 << shift;
+        a ^= b << shift
+
+
+def p_egcd(a, b):
+    a = (a, 1, 0)
+    b = (b, 0, 1)
+    while True:
+        q, r = p_divmod(a[0], b[0])
+        if not r: return b
+        a, b = b, (r, a[1] ^ p_mul(q, b[1]), a[2] ^ p_mul(q, b[2]))
+
+
+def p_mul(a, b):
+    result = 0
+    while a and b:
+        if a & 1: result ^= b
+        a >>= 1;
+        b <<= 1
+    return result
